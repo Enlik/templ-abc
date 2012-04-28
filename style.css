@@ -1,0 +1,27 @@
+body
+{
+font-size: 14px
+}
+
+table
+{
+border: 1px solid sienna;
+border-collapse:collapse;
+width: 80%;
+}
+
+td
+{
+border:1px solid sienna;
+}
+
+th
+{
+background-color:lightgreen;
+color:black;
+}
+
+td:hover
+{
+background-color: #CACACA;
+}
