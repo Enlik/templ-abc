@@ -1,14 +1,24 @@
 #!/usr/bin/env perl
 
-=pod
-Copyright (C) 2012, Enlik
+# Copyright (C) 2012, Enlik
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-=cut
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 use warnings;
 use strict;
@@ -168,24 +178,16 @@ sub parse_entry {
 	my $prefix = shift;
 	my @extra_args = @_;
 	my $href_full = $href;
-	my $type_ext;
-	my $rind;
-	if (($rind = rindex ($href, ".md5")) > 0) {
-		$type_ext = ".md5";
-	}
-	elsif (($rind = rindex ($href, ".pkglist")) > 0) {
-		$type_ext = ".pkglist";
-	}
-	elsif (($rind = rindex ($href, ".torrent")) > 0) {
-		$type_ext = ".torrent";
-	}
-	else {
-		$type_ext = "";
-		undef $rind;
-	}
+	my $type_ext = "";
 
-	# take part without extension
-	$href = substr ($href, 0, $rind) if defined $rind;
+	# find file type
+	for my $ext (qw(.md5 .pkglist .torrent)) {
+		if ($href =~ /\Q${ext}\E$/) {
+			$type_ext = $ext;
+			$href =~ s/\Q${ext}\E$//; # part without "well known extension"
+			last;
+		}
+	}
 
 	my $href_link = $prefix . $href_full;
 
@@ -196,38 +198,49 @@ sub parse_entry {
 	# than release type...
 	my $re_ver  = "(?<ver>DAILY|[0-9]+)";
 
+	my $fmt = sub {
+		my ($ver, $ed) = @_;
+		$ver eq "DAILY" ? $ed : qq{Sabayon $ver "$ed"};
+	};
+
 	# Sabayon_Linux_DAILY_amd64_E17.iso
 	if ($href =~ /^${re_pref}_${re_ver}_${re_arch}_(?<ed>[^_]+)\.iso$/) {
-		add_item ($+{ed}, $+{arch}, $type_ext, $href_link, @extra_args);
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ($ed, $+{arch}, $type_ext, $href_link, @extra_args);
 	}
 
 	# Sabayon_Linux_CoreCDX_DAILY_amd64.iso
 	elsif ($href =~ /^${re_pref}_(?<ed>[^_]+)_${re_ver}_${re_arch}\.iso$/) {
-		add_item ($+{ed}, $+{arch}, $type_ext, $href_link, @extra_args);
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ($ed, $+{arch}, $type_ext, $href_link, @extra_args);
 	}
 
 	# Sabayon_Linux_SpinBase_DAILY_x86_openvz.tar.gz
 	elsif ($href =~ /^${re_pref}_(?<ed>[^_]+)_${re_ver}_${re_arch}_(?<ed_misc>.+)\.tar\.gz$/) {
-		add_item ("$+{ed} ($+{ed_misc}; .tar.gz)", $+{arch},
+		# there's no such non-daily rel., but just in case; same for a few others
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ("$ed ($+{ed_misc}; .tar.gz)", $+{arch},
 			$type_ext, $href_link, @extra_args);
 	}
 
 	# Sabayon_Linux_DAILY_armv7a_(misc).img.xz
 	elsif ($href =~ /^${re_pref}_${re_ver}_${re_arch}_(?<ed>.+)\.img\.xz$/) {
-		# say STDERR join ", ", $+{arch}, $+{ed}, $+{ext}
-		add_item ("$+{ed} (.img.xz)", $+{arch},
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ("$ed (.img.xz)", $+{arch},
 			$type_ext, $href_link, @extra_args);
 	}
 
 	# Sabayon_Linux_DAILY_armv7a_BeagleBone_Base_4GB.img.rootfs.tar.xz
 	elsif ($href =~ /^${re_pref}_${re_ver}_${re_arch}_(?<ed>.+)(?<ext>\.img\.[^.]+\.tar\.xz)$/) {
-		add_item ("$+{ed} ($+{ext})", $+{arch},
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ("$ed ($+{ext})", $+{arch},
 			$type_ext, $href_link, @extra_args);
 	}
 
 	# Sabayon_Linux_DAILY_armv7a_BeagleBone_Base_16GB.img
 	elsif ($href =~ /^${re_pref}_${re_ver}_${re_arch}_(?<ed>.+)\.img$/) {
-		add_item ("$+{ed} (.img)", $+{arch},
+		my $ed = $fmt->($+{ver}, $+{ed});
+		add_item ("$ed (.img)", $+{arch},
 			$type_ext, $href_link, @extra_args);
 	}
 
