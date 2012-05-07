@@ -85,28 +85,28 @@ SpinBase and ServerBase are provided with a very minimal Anaconda Installer and 
 			</td>
 			<td>
 				<TMPL_IF NAME="mainfile_url">
-					<a href="<TMPL_VAR NAME="mainfile_url" ESCAPE=url>">download</a>
+					<a href="<TMPL_VAR NAME="mainfile_url" ESCAPE=html>">download</a>
 				<TMPL_ELSE>
 					???
 				</TMPL_IF>
 			</td>
 			<td>
 				<TMPL_IF NAME="torrent_url">
-					<a href="<TMPL_VAR NAME="torrent_url" ESCAPE=url>">torrent</a>
+					<a href="<TMPL_VAR NAME="torrent_url" ESCAPE=html>">torrent</a>
 				<TMPL_ELSE>
 					N/A
 				</TMPL_IF>
 			</td>
 			<td>
 				<TMPL_IF NAME="md5_url">
-					<a href="<TMPL_VAR NAME="md5_url" ESCAPE=url>">md5sum</a>
+					<a href="<TMPL_VAR NAME="md5_url" ESCAPE=html>">md5sum</a>
 				<TMPL_ELSE>
 					N/A
 				</TMPL_IF>
 			</td>
 			<td>
 				<TMPL_IF NAME="pkglist_url">
-					<a href="<TMPL_VAR NAME="pkglist_url" ESCAPE=url>">package list</a>
+					<a href="<TMPL_VAR NAME="pkglist_url" ESCAPE=html>">package list</a>
 				<TMPL_ELSE>
 					N/A
 				</TMPL_IF>
@@ -135,7 +135,7 @@ SpinBase and ServerBase are provided with a very minimal Anaconda Installer and 
 	<p>
 		<strong>Other:</strong><br>
 		<TMPL_LOOP NAME="others_loop">
-			<a href="<TMPL_VAR NAME="url" ESCAPE=url>">
+			<a href="<TMPL_VAR NAME="url" ESCAPE=html>">
 				<TMPL_VAR NAME="name" ESCAPE=html>
 			</a>
 			<br>
