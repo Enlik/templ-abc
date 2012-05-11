@@ -252,16 +252,19 @@ sub parse_entry {
 # Read directory and call subroutines to build data structures.
 sub generate {
 	if (1) {
-		my ($dir_to_open, $prefix) = @_;
+		my ($dir_to_open, $prefix, $opt_skip) = @_;
 		if (not defined $dir_to_open or not defined $prefix) {
 			die "generate: need 2 arguments!";
 		}
 
 		opendir (my $dh, $dir_to_open)
 			or die "Cannot open directory $dir_to_open: $!\n";
+		my %opt_skip = map { $_ => 1 } @{ $opt_skip };
+
 		while (my $item = readdir ($dh)) {
-			next if $item eq ".."; # we want "." I think
-	
+			# next if $item eq ".."; # we want "." I think
+			next if $opt_skip{$item};
+
 			my $item_path = $dir_to_open . "/" . $item;
 			my ($size, $mdate);
 			my @st = stat($item_path);
@@ -304,6 +307,7 @@ sub generate {
 		closedir ($dh);
 	}
 	# read from downloaded listing (wget .../iso), good for testing purposes
+	# ignores any argument
 	else {
 		my $filename = "daily.html";
 		open my $fh, "<", $filename or die "Cannot open file $filename! $!\n";
@@ -318,11 +322,13 @@ sub generate {
 }
 
 my ($arg_type, $opt_help, $opt_template, $opt_dir, $opt_prefix) = ("") x 5;
+my @opt_skip;
 my $opts = GetOptions(
 	"template=s"  => \$opt_template,
 	"help"        => \$opt_help,
 	"dir=s"       => \$opt_dir,
 	"prefix=s"    => \$opt_prefix,
+	"skip=s"      => \@opt_skip,
 );
 
 if ($opt_help) {
@@ -342,6 +348,8 @@ Options:
   resulting HTML document under /var/www and you use --dir /var/www/s/iso,
   you may need to specify --prefix s/iso/ so download links point to the
   proper location (note the trailing slash)
+--skip - file name to skip (especially useful to skip unwanted files listed
+  under "Others" section); this option can be specified multiple times
 --help - shows this help
 END
 	exit 0;
@@ -371,7 +379,7 @@ $tmpl = HTML::Template->new(filehandle => $tmpl_fh,
 	loop_context_vars => 1);
 close $tmpl_fh;
 
-generate($opt_dir || ".", $opt_prefix);
+generate($opt_dir || ".", $opt_prefix, \@opt_skip);
 
 if ($arg_type eq "daily") {
 	# x86 & amd86 first
